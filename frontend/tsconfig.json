@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": false,
+		"resolveJsonModule": true,
+    "isolatedModules": true,
+		"allowJs": false,
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+			"DOM.Iterable",
+      "esnext"
+    ],
+    "strict": true,
+    "sourceMap": true,
+    "target": "esnext",
+		"noEmit": true,
+  },
+  "exclude": [
+    "node_modules",
+    "webpack.config.js"
+  ],
+	"include": ["src"]
+}
