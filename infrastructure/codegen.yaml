@@ -1,0 +1,33 @@
+overwrite: true
+schema: 
+  - "./api/schema.graphql"
+  - "./api/appsync.graphql"
+documents: "./api/operations/**/*.graphql"
+generates:
+  ./lib/shared/appsync-gen.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+  ../frontend/src/api/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-resolvers"
+      - "typescript-generic-sdk"
+hooks:
+  afterOneFileWrite:
+    - eslint --fix
+config:
+  scalars:
+    AWSJSON: string
+    AWSDate: string
+    AWSTime: string
+    AWSDateTime: string
+    AWSTimestamp: number
+    AWSEmail: string
+    AWSURL: string
+    AWSPhone: string
+    AWSIPAddress: string
+  namingConvention:
+    typeNames: change-case-all#pascalCase
+    enumValues: change-case-all#upperCase

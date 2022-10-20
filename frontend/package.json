@@ -9,12 +9,18 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
+    "@aws-amplify/ui-react": "^3.5.9",
+    "@headlessui/react": "^1.7.3",
     "@heroicons/react": "^2.0.12",
+    "aws-amplify": "^4.3.39",
     "core-js": "^3.25.5",
     "flowbite": "^1.5.3",
     "flowbite-react": "^0.2.0",
+    "graphql": "^16.6.0",
+    "graphql-tag": "^2.12.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.4.2",
     "workbox-core": "^6.5.4"
   },
   "devDependencies": {
@@ -32,6 +38,7 @@
     "css-loader": "^6.7.1",
     "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "file-loader": "^6.2.0",

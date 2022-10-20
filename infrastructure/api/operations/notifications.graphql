@@ -1,0 +1,23 @@
+query GetSubscriptionStatus($input: SubscriptionStatusInput!) {
+  getSubscriptionStatus(input: $input) {
+    subscribed
+  }
+}
+
+mutation SubscribeToNotifications($input: SubscribeInput!) {
+  subscribeToNotifications(input: $input) {
+    status
+    message
+  }
+}
+
+mutation UnubscribeToNotifications($input: UnsubscribeInput!) {
+  unsubscribeToNotifications(input: $input) {
+    status
+    message
+  }
+}
+
+mutation SendNotification($input: NotificationInput!) {
+  sendNotification(input: $input)
+}

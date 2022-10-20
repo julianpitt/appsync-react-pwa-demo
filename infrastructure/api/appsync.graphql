@@ -1,0 +1,11 @@
+scalar AWSDate
+scalar AWSTime
+scalar AWSDateTime
+scalar AWSTimestamp
+scalar AWSEmail
+scalar AWSJSON
+scalar AWSURL
+scalar AWSPhone
+scalar AWSIPAddress
+directive @aws_iam on FIELD_DEFINITION | ARGUMENT_DEFINITION | OBJECT
+directive @aws_cognito_user_pools on FIELD_DEFINITION | ARGUMENT_DEFINITION | OBJECT

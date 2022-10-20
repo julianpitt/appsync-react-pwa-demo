@@ -1,0 +1,45 @@
+enum Status {
+  SUCCESS
+  ERROR
+}
+
+type ActionStatus {
+  status: Status!
+  message: String
+}
+
+input SubscribeInput {
+  subscriptionId: String!
+  endpoint: String!
+  authKey: String!
+  p256dh: String!
+}
+
+input SubscriptionStatusInput {
+  subscriptionId: String!
+}
+
+input UnsubscribeInput {
+  subscriptionId: String!
+}
+
+input NotificationInput {
+  title: String!
+  body: String!
+  icon: String!
+  group: String!
+}
+
+type SubscriptionStatus {
+  subscribed: Boolean!
+}
+
+type Query {
+  getSubscriptionStatus(input: SubscriptionStatusInput): SubscriptionStatus!
+}
+
+type Mutation {
+  subscribeToNotifications(input: SubscribeInput!): ActionStatus!
+  unsubscribeToNotifications(input: UnsubscribeInput!): ActionStatus!
+  sendNotification(input: NotificationInput!): Boolean!
+}
