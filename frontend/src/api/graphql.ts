@@ -25,17 +25,11 @@ export type Scalars = {
   AWSURL: string;
 };
 
-export type ActionStatus = {
-  __typename?: 'ActionStatus';
-  message?: Maybe<Scalars['String']>;
-  status: Status;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   sendNotification: Scalars['Boolean'];
-  subscribeToNotifications: ActionStatus;
-  unsubscribeToNotifications: ActionStatus;
+  subscribeToNotifications: Scalars['Boolean'];
+  unsubscribeToNotifications: Scalars['Boolean'];
 };
 
 
@@ -55,31 +49,24 @@ export type MutationUnsubscribeToNotificationsArgs = {
 
 export type NotificationInput = {
   body: Scalars['String'];
-  group: Scalars['String'];
   icon: Scalars['String'];
   title: Scalars['String'];
+  userPoolGroups: Array<Scalars['String']>;
 };
 
 export type Query = {
   __typename?: 'Query';
-  getSubscriptionStatus: SubscriptionStatus;
+  getUserSubscriptions: Array<UserSubscription>;
 };
-
-
-export type QueryGetSubscriptionStatusArgs = {
-  input?: InputMaybe<SubscriptionStatusInput>;
-};
-
-export enum Status {
-  ERROR = 'ERROR',
-  SUCCESS = 'SUCCESS'
-}
 
 export type SubscribeInput = {
-  authKey: Scalars['String'];
   endpoint: Scalars['String'];
+  keys: SubscriptionKeys;
+};
+
+export type SubscriptionKeys = {
+  auth: Scalars['String'];
   p256dh: Scalars['String'];
-  subscriptionId: Scalars['String'];
 };
 
 export type SubscriptionStatus = {
@@ -87,34 +74,35 @@ export type SubscriptionStatus = {
   subscribed: Scalars['Boolean'];
 };
 
-export type SubscriptionStatusInput = {
-  subscriptionId: Scalars['String'];
-};
-
 export type UnsubscribeInput = {
-  subscriptionId: Scalars['String'];
+  endpoint: Scalars['String'];
 };
 
-export type GetSubscriptionStatusQueryVariables = Exact<{
-  input: SubscriptionStatusInput;
-}>;
+export type UserSubscription = {
+  __typename?: 'UserSubscription';
+  endpoint: Scalars['String'];
+  userId: Scalars['String'];
+  userPoolGroup: Scalars['String'];
+};
+
+export type GetUserSubscriptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetSubscriptionStatusQuery = { __typename?: 'Query', getSubscriptionStatus: { __typename?: 'SubscriptionStatus', subscribed: boolean } };
+export type GetUserSubscriptionsQuery = { __typename?: 'Query', getUserSubscriptions: Array<{ __typename?: 'UserSubscription', userId: string, userPoolGroup: string, endpoint: string }> };
 
 export type SubscribeToNotificationsMutationVariables = Exact<{
   input: SubscribeInput;
 }>;
 
 
-export type SubscribeToNotificationsMutation = { __typename?: 'Mutation', subscribeToNotifications: { __typename?: 'ActionStatus', status: Status, message?: string | null } };
+export type SubscribeToNotificationsMutation = { __typename?: 'Mutation', subscribeToNotifications: boolean };
 
-export type UnubscribeToNotificationsMutationVariables = Exact<{
+export type UnsubscribeToNotificationsMutationVariables = Exact<{
   input: UnsubscribeInput;
 }>;
 
 
-export type UnubscribeToNotificationsMutation = { __typename?: 'Mutation', unsubscribeToNotifications: { __typename?: 'ActionStatus', status: Status, message?: string | null } };
+export type UnsubscribeToNotificationsMutation = { __typename?: 'Mutation', unsubscribeToNotifications: boolean };
 
 export type SendNotificationMutationVariables = Exact<{
   input: NotificationInput;
@@ -201,17 +189,16 @@ export type ResolversTypes = {
   AWSTime: ResolverTypeWrapper<Scalars['AWSTime']>;
   AWSTimestamp: ResolverTypeWrapper<Scalars['AWSTimestamp']>;
   AWSURL: ResolverTypeWrapper<Scalars['AWSURL']>;
-  ActionStatus: ResolverTypeWrapper<ActionStatus>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Mutation: ResolverTypeWrapper<{}>;
   NotificationInput: NotificationInput;
   Query: ResolverTypeWrapper<{}>;
-  Status: Status;
   String: ResolverTypeWrapper<Scalars['String']>;
   SubscribeInput: SubscribeInput;
+  SubscriptionKeys: SubscriptionKeys;
   SubscriptionStatus: ResolverTypeWrapper<SubscriptionStatus>;
-  SubscriptionStatusInput: SubscriptionStatusInput;
   UnsubscribeInput: UnsubscribeInput;
+  UserSubscription: ResolverTypeWrapper<UserSubscription>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -225,16 +212,16 @@ export type ResolversParentTypes = {
   AWSTime: Scalars['AWSTime'];
   AWSTimestamp: Scalars['AWSTimestamp'];
   AWSURL: Scalars['AWSURL'];
-  ActionStatus: ActionStatus;
   Boolean: Scalars['Boolean'];
   Mutation: {};
   NotificationInput: NotificationInput;
   Query: {};
   String: Scalars['String'];
   SubscribeInput: SubscribeInput;
+  SubscriptionKeys: SubscriptionKeys;
   SubscriptionStatus: SubscriptionStatus;
-  SubscriptionStatusInput: SubscriptionStatusInput;
   UnsubscribeInput: UnsubscribeInput;
+  UserSubscription: UserSubscription;
 };
 
 export type AwsCognitoUserPoolsDirectiveArgs = { };
@@ -281,24 +268,25 @@ export interface AwsurlScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
   name: 'AWSURL';
 }
 
-export type ActionStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['ActionStatus'] = ResolversParentTypes['ActionStatus']> = {
-  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['Status'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   sendNotification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendNotificationArgs, 'input'>>;
-  subscribeToNotifications?: Resolver<ResolversTypes['ActionStatus'], ParentType, ContextType, RequireFields<MutationSubscribeToNotificationsArgs, 'input'>>;
-  unsubscribeToNotifications?: Resolver<ResolversTypes['ActionStatus'], ParentType, ContextType, RequireFields<MutationUnsubscribeToNotificationsArgs, 'input'>>;
+  subscribeToNotifications?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSubscribeToNotificationsArgs, 'input'>>;
+  unsubscribeToNotifications?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnsubscribeToNotificationsArgs, 'input'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  getSubscriptionStatus?: Resolver<ResolversTypes['SubscriptionStatus'], ParentType, ContextType, Partial<QueryGetSubscriptionStatusArgs>>;
+  getUserSubscriptions?: Resolver<Array<ResolversTypes['UserSubscription']>, ParentType, ContextType>;
 };
 
 export type SubscriptionStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['SubscriptionStatus'] = ResolversParentTypes['SubscriptionStatus']> = {
   subscribed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserSubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserSubscription'] = ResolversParentTypes['UserSubscription']> = {
+  endpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userPoolGroup?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -312,10 +300,10 @@ export type Resolvers<ContextType = any> = {
   AWSTime?: GraphQLScalarType;
   AWSTimestamp?: GraphQLScalarType;
   AWSURL?: GraphQLScalarType;
-  ActionStatus?: ActionStatusResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SubscriptionStatus?: SubscriptionStatusResolvers<ContextType>;
+  UserSubscription?: UserSubscriptionResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = any> = {
@@ -324,27 +312,23 @@ export type DirectiveResolvers<ContextType = any> = {
 };
 
 
-export const GetSubscriptionStatusDocument = gql`
-    query GetSubscriptionStatus($input: SubscriptionStatusInput!) {
-  getSubscriptionStatus(input: $input) {
-    subscribed
+export const GetUserSubscriptionsDocument = gql`
+    query GetUserSubscriptions {
+  getUserSubscriptions {
+    userId
+    userPoolGroup
+    endpoint
   }
 }
     `;
 export const SubscribeToNotificationsDocument = gql`
     mutation SubscribeToNotifications($input: SubscribeInput!) {
-  subscribeToNotifications(input: $input) {
-    status
-    message
-  }
+  subscribeToNotifications(input: $input)
 }
     `;
-export const UnubscribeToNotificationsDocument = gql`
-    mutation UnubscribeToNotifications($input: UnsubscribeInput!) {
-  unsubscribeToNotifications(input: $input) {
-    status
-    message
-  }
+export const UnsubscribeToNotificationsDocument = gql`
+    mutation UnsubscribeToNotifications($input: UnsubscribeInput!) {
+  unsubscribeToNotifications(input: $input)
 }
     `;
 export const SendNotificationDocument = gql`
@@ -355,14 +339,14 @@ export const SendNotificationDocument = gql`
 export type Requester<C = {}, E = unknown> = <R, V>(doc: DocumentNode, vars?: V, options?: C) => Promise<R> | AsyncIterable<R>
 export function getSdk<C, E>(requester: Requester<C, E>) {
   return {
-    GetSubscriptionStatus(variables: GetSubscriptionStatusQueryVariables, options?: C): Promise<GetSubscriptionStatusQuery> {
-      return requester<GetSubscriptionStatusQuery, GetSubscriptionStatusQueryVariables>(GetSubscriptionStatusDocument, variables, options) as Promise<GetSubscriptionStatusQuery>;
+    GetUserSubscriptions(variables?: GetUserSubscriptionsQueryVariables, options?: C): Promise<GetUserSubscriptionsQuery> {
+      return requester<GetUserSubscriptionsQuery, GetUserSubscriptionsQueryVariables>(GetUserSubscriptionsDocument, variables, options) as Promise<GetUserSubscriptionsQuery>;
     },
     SubscribeToNotifications(variables: SubscribeToNotificationsMutationVariables, options?: C): Promise<SubscribeToNotificationsMutation> {
       return requester<SubscribeToNotificationsMutation, SubscribeToNotificationsMutationVariables>(SubscribeToNotificationsDocument, variables, options) as Promise<SubscribeToNotificationsMutation>;
     },
-    UnubscribeToNotifications(variables: UnubscribeToNotificationsMutationVariables, options?: C): Promise<UnubscribeToNotificationsMutation> {
-      return requester<UnubscribeToNotificationsMutation, UnubscribeToNotificationsMutationVariables>(UnubscribeToNotificationsDocument, variables, options) as Promise<UnubscribeToNotificationsMutation>;
+    UnsubscribeToNotifications(variables: UnsubscribeToNotificationsMutationVariables, options?: C): Promise<UnsubscribeToNotificationsMutation> {
+      return requester<UnsubscribeToNotificationsMutation, UnsubscribeToNotificationsMutationVariables>(UnsubscribeToNotificationsDocument, variables, options) as Promise<UnsubscribeToNotificationsMutation>;
     },
     SendNotification(variables: SendNotificationMutationVariables, options?: C): Promise<SendNotificationMutation> {
       return requester<SendNotificationMutation, SendNotificationMutationVariables>(SendNotificationDocument, variables, options) as Promise<SendNotificationMutation>;

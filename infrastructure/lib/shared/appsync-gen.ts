@@ -21,17 +21,11 @@ export type Scalars = {
   AWSURL: string;
 };
 
-export type ActionStatus = {
-  __typename?: 'ActionStatus';
-  message?: Maybe<Scalars['String']>;
-  status: Status;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   sendNotification: Scalars['Boolean'];
-  subscribeToNotifications: ActionStatus;
-  unsubscribeToNotifications: ActionStatus;
+  subscribeToNotifications: Scalars['Boolean'];
+  unsubscribeToNotifications: Scalars['Boolean'];
 };
 
 
@@ -51,31 +45,24 @@ export type MutationUnsubscribeToNotificationsArgs = {
 
 export type NotificationInput = {
   body: Scalars['String'];
-  group: Scalars['String'];
   icon: Scalars['String'];
   title: Scalars['String'];
+  userPoolGroups: Array<Scalars['String']>;
 };
 
 export type Query = {
   __typename?: 'Query';
-  getSubscriptionStatus: SubscriptionStatus;
+  getUserSubscriptions: Array<UserSubscription>;
 };
-
-
-export type QueryGetSubscriptionStatusArgs = {
-  input?: InputMaybe<SubscriptionStatusInput>;
-};
-
-export enum Status {
-  ERROR = 'ERROR',
-  SUCCESS = 'SUCCESS'
-}
 
 export type SubscribeInput = {
-  authKey: Scalars['String'];
   endpoint: Scalars['String'];
+  keys: SubscriptionKeys;
+};
+
+export type SubscriptionKeys = {
+  auth: Scalars['String'];
   p256dh: Scalars['String'];
-  subscriptionId: Scalars['String'];
 };
 
 export type SubscriptionStatus = {
@@ -83,34 +70,35 @@ export type SubscriptionStatus = {
   subscribed: Scalars['Boolean'];
 };
 
-export type SubscriptionStatusInput = {
-  subscriptionId: Scalars['String'];
-};
-
 export type UnsubscribeInput = {
-  subscriptionId: Scalars['String'];
+  endpoint: Scalars['String'];
 };
 
-export type GetSubscriptionStatusQueryVariables = Exact<{
-  input: SubscriptionStatusInput;
-}>;
+export type UserSubscription = {
+  __typename?: 'UserSubscription';
+  endpoint: Scalars['String'];
+  userId: Scalars['String'];
+  userPoolGroup: Scalars['String'];
+};
+
+export type GetUserSubscriptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetSubscriptionStatusQuery = { __typename?: 'Query', getSubscriptionStatus: { __typename?: 'SubscriptionStatus', subscribed: boolean } };
+export type GetUserSubscriptionsQuery = { __typename?: 'Query', getUserSubscriptions: Array<{ __typename?: 'UserSubscription', userId: string, userPoolGroup: string, endpoint: string }> };
 
 export type SubscribeToNotificationsMutationVariables = Exact<{
   input: SubscribeInput;
 }>;
 
 
-export type SubscribeToNotificationsMutation = { __typename?: 'Mutation', subscribeToNotifications: { __typename?: 'ActionStatus', status: Status, message?: string | null } };
+export type SubscribeToNotificationsMutation = { __typename?: 'Mutation', subscribeToNotifications: boolean };
 
-export type UnubscribeToNotificationsMutationVariables = Exact<{
+export type UnsubscribeToNotificationsMutationVariables = Exact<{
   input: UnsubscribeInput;
 }>;
 
 
-export type UnubscribeToNotificationsMutation = { __typename?: 'Mutation', unsubscribeToNotifications: { __typename?: 'ActionStatus', status: Status, message?: string | null } };
+export type UnsubscribeToNotificationsMutation = { __typename?: 'Mutation', unsubscribeToNotifications: boolean };
 
 export type SendNotificationMutationVariables = Exact<{
   input: NotificationInput;

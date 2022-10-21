@@ -1,0 +1,22 @@
+{
+  "name": "appsync-react-pwa-demo",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "install": "npm --prefix frontend install && npm --prefix infrastructure install",
+    "deploy": "cd infrastructure && npm run deploy",
+    "codegen": "cd infrastructure && npm run codegen",
+    "start": "npm --prefix frontend start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julianpitt/appsync-react-pwa-demo.git"
+  },
+  "keywords": ["AppSync", "React", "PWA", "Notifications", "Amplify", "AWS"],
+  "author": "Julian Pittas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/julianpitt/appsync-react-pwa-demo/issues"
+  },
+  "homepage": "https://github.com/julianpitt/appsync-react-pwa-demo#readme"
+}

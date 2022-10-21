@@ -1,45 +1,40 @@
-enum Status {
-  SUCCESS
-  ERROR
-}
-
-type ActionStatus {
-  status: Status!
-  message: String
-}
-
-input SubscribeInput {
-  subscriptionId: String!
-  endpoint: String!
-  authKey: String!
+input SubscriptionKeys {
+  auth: String!
   p256dh: String!
 }
 
-input SubscriptionStatusInput {
-  subscriptionId: String!
+input SubscribeInput {
+  endpoint: String!
+  keys: SubscriptionKeys!
 }
 
 input UnsubscribeInput {
-  subscriptionId: String!
+  endpoint: String!
 }
 
 input NotificationInput {
   title: String!
   body: String!
   icon: String!
-  group: String!
+  userPoolGroups: [String!]!
 }
 
 type SubscriptionStatus {
   subscribed: Boolean!
 }
 
+type UserSubscription {
+  userId: String!
+  userPoolGroup: String!
+  endpoint: String!
+}
+
 type Query {
-  getSubscriptionStatus(input: SubscriptionStatusInput): SubscriptionStatus!
+  getUserSubscriptions: [UserSubscription!]!
 }
 
 type Mutation {
-  subscribeToNotifications(input: SubscribeInput!): ActionStatus!
-  unsubscribeToNotifications(input: UnsubscribeInput!): ActionStatus!
-  sendNotification(input: NotificationInput!): Boolean!
+  subscribeToNotifications(input: SubscribeInput!): Boolean!
+  unsubscribeToNotifications(input: UnsubscribeInput!): Boolean!
+  sendNotification(input: NotificationInput!): Boolean! @aws_auth(cognito_groups: ["admin"])
 }

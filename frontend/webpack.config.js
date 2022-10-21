@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 const WorkboxPlugin = require('workbox-webpack-plugin');
 const CopyPlugin = require("copy-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -26,6 +27,9 @@ module.exports = {
     publicPath: '/'
   },
   plugins: [
+    new Dotenv({
+      systemvars: true,
+    }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
@@ -34,7 +38,7 @@ module.exports = {
       // and not allow any straggling "old" SWs to hang around
       swSrc: "./src/service-worker.ts",
       swDest: "sw.js",
-      maximumFileSizeToCacheInBytes: 3145728
+      maximumFileSizeToCacheInBytes: 31145728
     }),
     new CopyPlugin({
       patterns: [

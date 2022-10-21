@@ -21,14 +21,26 @@ import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Query, Mutation } from './shared/appsync-gen';
+import { UserPool } from 'aws-cdk-lib/aws-cognito';
 
 interface ApiStackProps extends cdk.StackProps {
   unauthRole: Role;
   authRole: Role;
+  userPool: UserPool;
+  database: Table;
+  vapidDetails: {
+    publicKey: string;
+    privateKey: string;
+    identifier: string;
+  };
 }
 
-const lambdaProps = (env = {} as Record<string, string>) => ({
+const lambdaProps = (
+  env = {} as Record<string, string>,
+): Partial<cdk.aws_lambda_nodejs.NodejsFunctionProps> => ({
   bundling: { minify: true, sourceMap: true },
+  timeout: cdk.Duration.seconds(15),
+  memorySize: 256,
   environment: {
     NODE_OPTIONS: '--enable-source-maps',
     ...env,
@@ -73,12 +85,17 @@ export class ApiStack extends cdk.Stack {
 
     // creates GraphQL api
     const api = new CfnGraphQLApi(this, 'graphql-api', {
-      name: 'search-app-graphql-api',
+      name: 'pwa-demo-graphql-api',
       logConfig: {
         cloudWatchLogsRoleArn: apiLogRole.roleArn,
         fieldLogLevel: 'ALL',
       },
-      authenticationType: 'AWS_IAM',
+      authenticationType: 'AMAZON_COGNITO_USER_POOLS',
+      userPoolConfig: {
+        userPoolId: props.userPool.userPoolId,
+        awsRegion: cdk.Stack.of(this).region,
+        defaultAction: 'ALLOW',
+      },
     });
 
     const apiSchemaFile = fs.readFileSync(path.join(__dirname, '../', 'api', 'schema.graphql'));
@@ -88,36 +105,74 @@ export class ApiStack extends cdk.Stack {
       definition: apiSchemaFile.toString(),
     });
 
-    const { lambdaFunction: getApplicationConfigFunction } = this.attachFunctionToAppSync(
+    // ------------- FUNCTIONS  -------------
+
+    const { lambdaFunction: getUserSubscriptionFunction } = this.attachFunctionToAppSync(
       {
         envs: {
           tableName: props.database.tableName,
         },
-        functionName: 'getApplicationConfig',
+        functionName: 'getUserSubscriptions',
         typeName: 'Query',
-        fieldName: 'getApplicationConfig',
-        permissions: 'all',
+        fieldName: 'getUserSubscriptions',
+        permissions: 'authorised',
       },
       api,
       apiSchema,
       invokeLambdaRole,
     );
+    props.database.grant(getUserSubscriptionFunction, 'dynamodb:Query');
 
-    // Give the getApplicationConfigFn permission to query DynamoDB
-    props.database.grant(getApplicationConfigFunction, 'dynamodb:Query');
-
-    const { lambdaFunction: searchProjectsFunction } = this.attachFunctionToAppSync(
+    const { lambdaFunction: subscribeToNotificationsFunction } = this.attachFunctionToAppSync(
       {
-        envs: {},
-        functionName: 'searchProjects',
-        typeName: 'Query',
-        fieldName: 'searchProjects',
-        permissions: 'all',
+        envs: {
+          tableName: props.database.tableName,
+        },
+        functionName: 'subscribeToNotifications',
+        typeName: 'Mutation',
+        fieldName: 'subscribeToNotifications',
+        permissions: 'authorised',
       },
       api,
       apiSchema,
       invokeLambdaRole,
     );
+    props.database.grant(subscribeToNotificationsFunction, 'dynamodb:PutItem');
+
+    const { lambdaFunction: unsubscribeToNotificationsFunction } = this.attachFunctionToAppSync(
+      {
+        envs: {
+          tableName: props.database.tableName,
+        },
+        functionName: 'unsubscribeToNotifications',
+        typeName: 'Mutation',
+        fieldName: 'unsubscribeToNotifications',
+        permissions: 'authorised',
+      },
+      api,
+      apiSchema,
+      invokeLambdaRole,
+    );
+    props.database.grant(unsubscribeToNotificationsFunction, 'dynamodb:DeleteItem');
+
+    const { lambdaFunction: sendNotificationFunction } = this.attachFunctionToAppSync(
+      {
+        envs: {
+          tableName: props.database.tableName,
+          publicKey: props.vapidDetails.publicKey,
+          privateKey: props.vapidDetails.privateKey,
+          identifier: props.vapidDetails.identifier,
+        },
+        functionName: 'sendNotification',
+        typeName: 'Mutation',
+        fieldName: 'sendNotification',
+        permissions: 'authorised',
+      },
+      api,
+      apiSchema,
+      invokeLambdaRole,
+    );
+    props.database.grant(sendNotificationFunction, 'dynamodb:Query');
 
     this.attachLambdaPermissionsToAppSync(invokeLambdaRole);
 
@@ -194,32 +249,36 @@ export class ApiStack extends cdk.Stack {
   }
 
   attachLambdaFunctionsToAuth(authedRole: IRole, unauthedRole: IRole) {
-    authedRole.attachInlinePolicy(
-      new Policy(this, 'invokeGraphqlAuthedPolicy', {
-        statements: [
-          new PolicyStatement({
-            effect: Effect.ALLOW,
-            resources: this.authorizedFunctions.map(resolver =>
-              cdk.Fn.join('fields', cdk.Fn.split('resolvers', resolver.attrResolverArn)),
-            ),
-            actions: ['appsync:GraphQL'],
-          }),
-        ],
-      }),
-    );
+    if (this.authorizedFunctions.length > 0) {
+      authedRole.attachInlinePolicy(
+        new Policy(this, 'invokeGraphqlAuthedPolicy', {
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: this.authorizedFunctions.map(resolver =>
+                cdk.Fn.join('fields', cdk.Fn.split('resolvers', resolver.attrResolverArn)),
+              ),
+              actions: ['appsync:GraphQL'],
+            }),
+          ],
+        }),
+      );
+    }
 
-    unauthedRole.attachInlinePolicy(
-      new Policy(this, 'invokeGraphqlUnauthedPolicy', {
-        statements: [
-          new PolicyStatement({
-            effect: Effect.ALLOW,
-            resources: this.anonymousFunctions.map(resolver =>
-              cdk.Fn.join('fields', cdk.Fn.split('resolvers', resolver.attrResolverArn)),
-            ),
-            actions: ['appsync:GraphQL'],
-          }),
-        ],
-      }),
-    );
+    if (this.anonymousFunctions.length > 0) {
+      unauthedRole.attachInlinePolicy(
+        new Policy(this, 'invokeGraphqlUnauthedPolicy', {
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: this.anonymousFunctions.map(resolver =>
+                cdk.Fn.join('fields', cdk.Fn.split('resolvers', resolver.attrResolverArn)),
+              ),
+              actions: ['appsync:GraphQL'],
+            }),
+          ],
+        }),
+      );
+    }
   }
 }

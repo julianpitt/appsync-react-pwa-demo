@@ -1,21 +1,17 @@
-query GetSubscriptionStatus($input: SubscriptionStatusInput!) {
-  getSubscriptionStatus(input: $input) {
-    subscribed
+query GetUserSubscriptions {
+  getUserSubscriptions {
+    userId
+    userPoolGroup
+    endpoint
   }
 }
 
 mutation SubscribeToNotifications($input: SubscribeInput!) {
-  subscribeToNotifications(input: $input) {
-    status
-    message
-  }
+  subscribeToNotifications(input: $input)
 }
 
-mutation UnubscribeToNotifications($input: UnsubscribeInput!) {
-  unsubscribeToNotifications(input: $input) {
-    status
-    message
-  }
+mutation UnsubscribeToNotifications($input: UnsubscribeInput!) {
+  unsubscribeToNotifications(input: $input)
 }
 
 mutation SendNotification($input: NotificationInput!) {

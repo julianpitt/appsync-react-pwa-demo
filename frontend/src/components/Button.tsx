@@ -1,16 +1,13 @@
-type ButtonProps = {
-  children?: React.ReactNode;
-  onClick: React.DOMAttributes<HTMLButtonElement>['onClick'];
-};
+import { Button, ButtonProps } from "@aws-amplify/ui-react";
+import * as React from "react";
 
-export default function Button(props: ButtonProps) {
+export default function NewButton({children, ...props}: ButtonProps & React.RefAttributes<HTMLButtonElement> & {children?: React.ReactNode}) {
   return (
-    <button
-      type="button"
-      onClick={props.onClick}
+    <Button
       className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+      {...props}
     >
-      {props.children}
-    </button>
+      {children}
+    </Button>
   );
 }

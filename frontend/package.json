@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "start": "webpack serve  --hot --open --config webpack.config.js",
+    "start": "REACT_APP_VAPID_PUBLIC_KEY=$VAPID_PUBLIC_KEY webpack serve  --hot --open --config webpack.config.js",
     "build": "webpack --config webpack.config.js --mode production",
     "serve": "",
     "lint": "eslint . --ext .ts"
@@ -36,6 +36,7 @@
     "babel-loader": "^8.2.5",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
+    "dotenv-webpack": "^8.0.1",
     "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-react-app": "^7.0.1",

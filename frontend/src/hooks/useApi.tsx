@@ -28,17 +28,18 @@ export function useApi() {
       throw new Error('DocumentNode passed to AppSync must contain single query or mutation');
     }
 
-    await Auth.currentCredentials()
-      .then(d => console.log('data: ', d))
-      .catch(e => console.log('error: ', e));
+    const creds = await Auth.currentSession();
 
     switch (definition.operation) {
+      case 'mutation': 
       case 'query': {
         const response = (await API.graphql<R>({
           query: doc as GraphQLOptions['query'],
           variables: variables as object,
-          authMode: GRAPHQL_AUTH_MODE.AWS_IAM,
+          authMode: GRAPHQL_AUTH_MODE.AMAZON_COGNITO_USER_POOLS,
           ...overwrites,
+        }, {
+          Authorization: creds.getIdToken().getJwtToken()
         })) as GraphQLResult<R>;
 
         if (response.errors) {

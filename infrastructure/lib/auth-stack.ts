@@ -3,12 +3,14 @@ import {
   AccountRecovery,
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
+  CfnUserPoolGroup,
   UserPool,
   UserPoolClient,
   UserPoolClientIdentityProvider,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, ManagedPolicy, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import groups from '../../shared/groups';
 
 export class AuthStack extends Stack {
   userPool: UserPool;
@@ -26,16 +28,6 @@ export class AuthStack extends Stack {
       },
       autoVerify: {
         email: true,
-      },
-      standardAttributes: {
-        givenName: {
-          required: true,
-          mutable: true,
-        },
-        familyName: {
-          required: true,
-          mutable: true,
-        },
       },
       passwordPolicy: {
         minLength: 6,
@@ -120,6 +112,21 @@ export class AuthStack extends Stack {
           }:${userPoolClient.userPoolClientId}`,
         },
       },
+    });
+
+    // Create all the groups
+    const cfnUserPoolGroup = new CfnUserPoolGroup(this, 'admin-user-group', {
+      userPoolId: userPool.userPoolId,
+      groupName: 'admin',
+      precedence: 1,
+    });
+
+    groups.forEach(group => {
+      new CfnUserPoolGroup(this, group, {
+        userPoolId: userPool.userPoolId,
+        groupName: group,
+        precedence: 2,
+      });
     });
 
     new CfnOutput(this, 'userPoolId', {

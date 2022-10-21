@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "esModuleInterop": false,
+    "esModuleInterop": true,
 		"resolveJsonModule": true,
     "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
 		"allowJs": false,
     "jsx": "react-jsx",
     "module": "esnext",

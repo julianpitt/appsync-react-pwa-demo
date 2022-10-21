@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { Auth } from 'aws-amplify';
+import { useEffect, useState } from 'react';
 import Button from '../components/Button';
+import { useApi } from '../hooks/useApi';
 
 export default function DashboardPage() {
   const notificationsAvailable = 'Notification' in window;
@@ -21,6 +23,7 @@ export default function DashboardPage() {
   }
 
   function displayLocalNotification() {
+    console.log('displaying notification')
     new Notification(title, { body, icon });
   }
 
@@ -43,7 +46,7 @@ export default function DashboardPage() {
           </Button>
         </div>
       )}
-      <h1 className="text-xl px-4 py-3">Notifications demo</h1>
+      <h1 className="text-xl px-4 py-3">Local Notifications demo</h1>
       <div className="container px-2 py-3">
         <div className="flex px-4 gap-4 flex-col py-5">
           <label htmlFor="notification-title" className="font-bold">
