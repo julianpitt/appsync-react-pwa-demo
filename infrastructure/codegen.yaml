@@ -14,9 +14,9 @@ generates:
       - "typescript-operations"
       - "typescript-resolvers"
       - "typescript-generic-sdk"
-hooks:
-  afterOneFileWrite:
-    - eslint --fix
+# hooks:
+#   afterOneFileWrite:
+#     - eslint --fix
 config:
   scalars:
     AWSJSON: string

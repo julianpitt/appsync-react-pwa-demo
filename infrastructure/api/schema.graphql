@@ -33,8 +33,20 @@ type Query {
   getUserSubscriptions: [UserSubscription!]!
 }
 
+# Define an event to allow WS filtering on
+type MessageEvent @aws_iam @aws_cognito_user_pools {
+  title: String!
+  body: String
+  group: String!
+}
+
 type Mutation {
   subscribeToNotifications(input: SubscribeInput!): Boolean!
   unsubscribeToNotifications(input: UnsubscribeInput!): Boolean!
   sendNotification(input: NotificationInput!): Boolean! @aws_auth(cognito_groups: ["admin"])
+  sendWSMessage(group: String!, title: String!, body: String): MessageEvent! @aws_iam
+}
+
+type Subscription {
+  inAppNotifications: MessageEvent @aws_subscribe(mutations: ["sendWSMessage"])
 }

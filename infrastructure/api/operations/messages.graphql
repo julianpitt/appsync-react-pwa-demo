@@ -1,0 +1,6 @@
+subscription InAppNotifications {
+  inAppNotifications {
+    title
+    body
+  }
+}

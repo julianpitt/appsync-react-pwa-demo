@@ -1,7 +1,6 @@
-import { Auth } from 'aws-amplify';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Button from '../components/Button';
-import { useApi } from '../hooks/useApi';
+import {toast} from 'react-toastify';
 
 export default function DashboardPage() {
   const notificationsAvailable = 'Notification' in window;
@@ -25,6 +24,11 @@ export default function DashboardPage() {
   function displayLocalNotification() {
     console.log('displaying notification')
     new Notification(title, { body, icon });
+  }
+
+  function displayInAppNotification() {
+    console.log('displaying in app notification')
+    toast(title);
   }
 
   if (!notificationsAvailable) return <p>Notifications are not available in this browser</p>;
@@ -108,6 +112,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <Button onClick={displayLocalNotification}>Display Local notification</Button>
+        <Button onClick={displayInAppNotification}>Display In app notification</Button>
       </div>
     </div>
   );

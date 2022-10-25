@@ -21,9 +21,17 @@ export type Scalars = {
   AWSURL: string;
 };
 
+export type MessageEvent = {
+  __typename?: 'MessageEvent';
+  body?: Maybe<Scalars['String']>;
+  group: Scalars['String'];
+  title: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   sendNotification: Scalars['Boolean'];
+  sendWSMessage: MessageEvent;
   subscribeToNotifications: Scalars['Boolean'];
   unsubscribeToNotifications: Scalars['Boolean'];
 };
@@ -31,6 +39,13 @@ export type Mutation = {
 
 export type MutationSendNotificationArgs = {
   input: NotificationInput;
+};
+
+
+export type MutationSendWsMessageArgs = {
+  body?: InputMaybe<Scalars['String']>;
+  group: Scalars['String'];
+  title: Scalars['String'];
 };
 
 
@@ -60,6 +75,11 @@ export type SubscribeInput = {
   keys: SubscriptionKeys;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  inAppNotifications?: Maybe<MessageEvent>;
+};
+
 export type SubscriptionKeys = {
   auth: Scalars['String'];
   p256dh: Scalars['String'];
@@ -80,6 +100,11 @@ export type UserSubscription = {
   userId: Scalars['String'];
   userPoolGroup: Scalars['String'];
 };
+
+export type InAppNotificationsSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InAppNotificationsSubscription = { __typename?: 'Subscription', inAppNotifications?: { __typename?: 'MessageEvent', title: string, body?: string | null } | null };
 
 export type GetUserSubscriptionsQueryVariables = Exact<{ [key: string]: never; }>;
 

@@ -2,6 +2,7 @@ import { Auth } from "aws-amplify";
 import { useEffect, useState } from "react";
 import { useApi } from "../hooks/useApi";
 import Button from "./Button";
+import {toast} from 'react-toastify';
 
 function urlBase64ToUint8Array(base64String: string) {
   var padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -75,41 +76,56 @@ export default function ServiceWorkerSubscription() {
 		const vapidPublicKey = process.env.VAPID_PUBLIC_KEY!;
 		const convertedPublicKey = urlBase64ToUint8Array(vapidPublicKey);
 
-		const newSubscription = await swReg.pushManager.subscribe({
-			userVisibleOnly: true, // push notificaitons sent through our server are only visible to this user
-			applicationServerKey: convertedPublicKey
-		});
+    try {
+      const newSubscription = await swReg.pushManager.subscribe({
+        userVisibleOnly: true, // push notificaitons sent through our server are only visible to this user
+        applicationServerKey: convertedPublicKey
+      });
 
-    const subscriptionJSON = newSubscription.toJSON();
+      const subscriptionJSON = newSubscription.toJSON();
 
-    await api.SubscribeToNotifications({
-      input: {
-        endpoint: subscriptionJSON.endpoint!,
-        keys: {
-          auth: subscriptionJSON.keys!.auth!,
-          p256dh: subscriptionJSON.keys!.p256dh!
+      await api.SubscribeToNotifications({
+        input: {
+          endpoint: subscriptionJSON.endpoint!,
+          keys: {
+            auth: subscriptionJSON.keys!.auth!,
+            p256dh: subscriptionJSON.keys!.p256dh!
+          }
         }
-      }
-    });
+      });
 
-    setRegistered(true);
+      toast('Subscribed', {type: 'success'});
+
+      setRegistered(true);
+    } catch (e) {
+      toast('Subscribe error', {type: 'error'});
+      console.error(e);
+    }
   }
 
   async function unsubscribe() {
-    const api = useApi();
-    const subscription = await getServiceWorkerRegistration();
+    try {
+      const api = useApi();
+      const subscription = await getServiceWorkerRegistration();
 
-    await api.UnsubscribeToNotifications({
-      input: {
-        endpoint: subscription!.endpoint
+      await api.UnsubscribeToNotifications({
+        input: {
+          endpoint: subscription!.endpoint
+        }
+      });
+
+      const reg = await getServiceWorkerRegistration();
+      const result = await reg!.unsubscribe();
+      if(result !== true) {
+        console.log('unsubscribe unsuccessful')
       }
-    });
-
-    const reg = await getServiceWorkerRegistration();
-    const result = await reg!.unsubscribe();
-    if(result !== true) {console.log('unsubscribe unsuccessful')}
-
-    setRegistered(false);
+      
+      toast('Unsubscribed', {type: 'success'});
+      setRegistered(false);
+    } catch (e) {
+      console.error(e);
+      toast('Unsubscribe error', {type: 'error'});
+    }
   }
 
   async function toggleSubscription() {

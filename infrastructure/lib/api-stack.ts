@@ -20,7 +20,7 @@ import {
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { Query, Mutation } from './shared/appsync-gen';
+import { Query, Mutation, Subscription } from './shared/appsync-gen';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 
 interface ApiStackProps extends cdk.StackProps {
@@ -61,6 +61,10 @@ type AppSyncFunction = {
       typeName: 'Mutation';
       fieldName: keyof Mutation;
     }
+  | {
+      typeName: 'Subscription';
+      fieldName: keyof Subscription;
+    }
 );
 
 // Stack definition
@@ -96,6 +100,12 @@ export class ApiStack extends cdk.Stack {
         awsRegion: cdk.Stack.of(this).region,
         defaultAction: 'ALLOW',
       },
+      additionalAuthenticationProviders: [
+        // for subscriptions
+        {
+          authenticationType: 'AWS_IAM',
+        },
+      ],
     });
 
     const apiSchemaFile = fs.readFileSync(path.join(__dirname, '../', 'api', 'schema.graphql'));
@@ -104,6 +114,59 @@ export class ApiStack extends cdk.Stack {
       apiId: api.attrApiId,
       definition: apiSchemaFile.toString(),
     });
+
+    const noneDataSource = new CfnDataSource(this, `noneDatasource`, {
+      apiId: api.attrApiId,
+      // Note: property 'name' cannot include hyphens
+      name: `NoneDS`,
+      type: 'NONE',
+    });
+
+    // map the AppSync Query to the Lambda function
+    const sendWSResolver = new CfnResolver(this, `sendWSMutationResolver`, {
+      apiId: api.attrApiId,
+      typeName: 'Mutation',
+      fieldName: 'sendWSMessage',
+      dataSourceName: noneDataSource.name,
+      requestMappingTemplate: `{
+        "version": "2017-02-28",
+        "payload": $utils.toJson($context.arguments)
+      }`,
+      responseMappingTemplate: '$util.toJson($context.result)',
+    });
+    sendWSResolver.addDependsOn(apiSchema);
+
+    const subscriptionResolver = new CfnResolver(this, `inAppNotificationSubscriptionResolver`, {
+      apiId: api.attrApiId,
+      typeName: 'Subscription',
+      fieldName: 'inAppNotifications',
+      dataSourceName: noneDataSource.name,
+      requestMappingTemplate: `{
+        "version": "2018-05-29",
+        "payload": {
+          "title": "",
+          "group": ""
+        }
+      }`,
+      responseMappingTemplate: `
+        #set($claimPermissions = $ctx.identity.claims.get("cognito:groups"))
+        $extensions.setSubscriptionFilter({
+            "filterGroup": [
+                {
+                  "filters" : [
+                        {
+                            "fieldName" : "group",
+                            "operator" : "in",
+                            "value" : $claimPermissions
+                        }
+                  ]
+                }
+            ]
+        })
+        $util.toJson($context.result)
+      `,
+    });
+    subscriptionResolver.addDependsOn(apiSchema);
 
     // ------------- FUNCTIONS  -------------
 
@@ -162,6 +225,7 @@ export class ApiStack extends cdk.Stack {
           publicKey: props.vapidDetails.publicKey,
           privateKey: props.vapidDetails.privateKey,
           identifier: props.vapidDetails.identifier,
+          appSyncEndpoint: api.getAtt('GraphQLUrl').toString(),
         },
         functionName: 'sendNotification',
         typeName: 'Mutation',
@@ -173,6 +237,17 @@ export class ApiStack extends cdk.Stack {
       invokeLambdaRole,
     );
     props.database.grant(sendNotificationFunction, 'dynamodb:Query');
+    sendNotificationFunction.role?.attachInlinePolicy(
+      new Policy(this, 'sendWSMutationPolicy', {
+        statements: [
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            resources: [cdk.Fn.join('', [api.ref, '/types/Mutation/fields/sendWSMessage'])],
+            actions: ['appsync:GraphQL'],
+          }),
+        ],
+      }),
+    );
 
     this.attachLambdaPermissionsToAppSync(invokeLambdaRole);
 

@@ -25,9 +25,17 @@ export type Scalars = {
   AWSURL: string;
 };
 
+export type MessageEvent = {
+  __typename?: 'MessageEvent';
+  body?: Maybe<Scalars['String']>;
+  group: Scalars['String'];
+  title: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   sendNotification: Scalars['Boolean'];
+  sendWSMessage: MessageEvent;
   subscribeToNotifications: Scalars['Boolean'];
   unsubscribeToNotifications: Scalars['Boolean'];
 };
@@ -35,6 +43,13 @@ export type Mutation = {
 
 export type MutationSendNotificationArgs = {
   input: NotificationInput;
+};
+
+
+export type MutationSendWsMessageArgs = {
+  body?: InputMaybe<Scalars['String']>;
+  group: Scalars['String'];
+  title: Scalars['String'];
 };
 
 
@@ -64,6 +79,11 @@ export type SubscribeInput = {
   keys: SubscriptionKeys;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  inAppNotifications?: Maybe<MessageEvent>;
+};
+
 export type SubscriptionKeys = {
   auth: Scalars['String'];
   p256dh: Scalars['String'];
@@ -84,6 +104,11 @@ export type UserSubscription = {
   userId: Scalars['String'];
   userPoolGroup: Scalars['String'];
 };
+
+export type InAppNotificationsSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InAppNotificationsSubscription = { __typename?: 'Subscription', inAppNotifications?: { __typename?: 'MessageEvent', title: string, body?: string | null } | null };
 
 export type GetUserSubscriptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -190,11 +215,13 @@ export type ResolversTypes = {
   AWSTimestamp: ResolverTypeWrapper<Scalars['AWSTimestamp']>;
   AWSURL: ResolverTypeWrapper<Scalars['AWSURL']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  MessageEvent: ResolverTypeWrapper<MessageEvent>;
   Mutation: ResolverTypeWrapper<{}>;
   NotificationInput: NotificationInput;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   SubscribeInput: SubscribeInput;
+  Subscription: ResolverTypeWrapper<{}>;
   SubscriptionKeys: SubscriptionKeys;
   SubscriptionStatus: ResolverTypeWrapper<SubscriptionStatus>;
   UnsubscribeInput: UnsubscribeInput;
@@ -213,11 +240,13 @@ export type ResolversParentTypes = {
   AWSTimestamp: Scalars['AWSTimestamp'];
   AWSURL: Scalars['AWSURL'];
   Boolean: Scalars['Boolean'];
+  MessageEvent: MessageEvent;
   Mutation: {};
   NotificationInput: NotificationInput;
   Query: {};
   String: Scalars['String'];
   SubscribeInput: SubscribeInput;
+  Subscription: {};
   SubscriptionKeys: SubscriptionKeys;
   SubscriptionStatus: SubscriptionStatus;
   UnsubscribeInput: UnsubscribeInput;
@@ -268,14 +297,26 @@ export interface AwsurlScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
   name: 'AWSURL';
 }
 
+export type MessageEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['MessageEvent'] = ResolversParentTypes['MessageEvent']> = {
+  body?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  group?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   sendNotification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendNotificationArgs, 'input'>>;
+  sendWSMessage?: Resolver<ResolversTypes['MessageEvent'], ParentType, ContextType, RequireFields<MutationSendWsMessageArgs, 'group' | 'title'>>;
   subscribeToNotifications?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSubscribeToNotificationsArgs, 'input'>>;
   unsubscribeToNotifications?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnsubscribeToNotificationsArgs, 'input'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   getUserSubscriptions?: Resolver<Array<ResolversTypes['UserSubscription']>, ParentType, ContextType>;
+};
+
+export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  inAppNotifications?: SubscriptionResolver<Maybe<ResolversTypes['MessageEvent']>, "inAppNotifications", ParentType, ContextType>;
 };
 
 export type SubscriptionStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['SubscriptionStatus'] = ResolversParentTypes['SubscriptionStatus']> = {
@@ -300,8 +341,10 @@ export type Resolvers<ContextType = any> = {
   AWSTime?: GraphQLScalarType;
   AWSTimestamp?: GraphQLScalarType;
   AWSURL?: GraphQLScalarType;
+  MessageEvent?: MessageEventResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   SubscriptionStatus?: SubscriptionStatusResolvers<ContextType>;
   UserSubscription?: UserSubscriptionResolvers<ContextType>;
 };
@@ -312,6 +355,14 @@ export type DirectiveResolvers<ContextType = any> = {
 };
 
 
+export const InAppNotificationsDocument = gql`
+    subscription InAppNotifications {
+  inAppNotifications {
+    title
+    body
+  }
+}
+    `;
 export const GetUserSubscriptionsDocument = gql`
     query GetUserSubscriptions {
   getUserSubscriptions {
@@ -339,6 +390,9 @@ export const SendNotificationDocument = gql`
 export type Requester<C = {}, E = unknown> = <R, V>(doc: DocumentNode, vars?: V, options?: C) => Promise<R> | AsyncIterable<R>
 export function getSdk<C, E>(requester: Requester<C, E>) {
   return {
+    InAppNotifications(variables?: InAppNotificationsSubscriptionVariables, options?: C): AsyncIterable<InAppNotificationsSubscription> {
+      return requester<InAppNotificationsSubscription, InAppNotificationsSubscriptionVariables>(InAppNotificationsDocument, variables, options) as AsyncIterable<InAppNotificationsSubscription>;
+    },
     GetUserSubscriptions(variables?: GetUserSubscriptionsQueryVariables, options?: C): Promise<GetUserSubscriptionsQuery> {
       return requester<GetUserSubscriptionsQuery, GetUserSubscriptionsQueryVariables>(GetUserSubscriptionsDocument, variables, options) as Promise<GetUserSubscriptionsQuery>;
     },

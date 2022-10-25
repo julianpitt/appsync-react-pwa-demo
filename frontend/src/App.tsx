@@ -5,6 +5,9 @@ import Layout from './Layout';
 import Admin from './pages/AdminPage';
 import DashboardPage from './pages/DashboardPage';
 import {default as Exports} from './aws-exports.json';
+import { ToastContainer } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.min.css';
 
 Amplify.configure({
   aws_cognito_region: Exports.PWADemoAuthStack.cognitoRegion,
@@ -20,14 +23,15 @@ export default function App() {
   return (
     <Authenticator>
     <Authenticator.Provider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="/admin" element={<Admin />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+        <ToastContainer />
     </Authenticator.Provider>
     </Authenticator>
   );

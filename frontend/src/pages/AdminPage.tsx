@@ -4,6 +4,7 @@ import Button from '../components/Button';
 import { useApi } from '../hooks/useApi';
 import UserGroups from '../../../shared/groups';
 import * as React from 'react';
+import { toast } from 'react-toastify';
 
 export default function AdminPage() {
   const [title, setTitle] = useState('Hello World!');
@@ -28,13 +29,13 @@ export default function AdminPage() {
       });
 
     } catch (e) {
+      toast('Api call failed', {type: 'error'});
       console.error(e);
     }
   }
 
   function handleGroupToggle(e: React.ChangeEvent<HTMLInputElement>) {
     const {value, checked} = e.currentTarget;
-    console.log({value, checked})
     if(checked) {
       setGroups((currentGroups) => [...currentGroups, value]);
     } else {
