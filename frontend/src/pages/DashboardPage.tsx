@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Button from '../components/Button';
 import {toast} from 'react-toastify';
+import ServiceWorkerSubscription from '../components/SWSubscription';
+import WebSocketSubscription from '../components/WSsubscription';
 
 export default function DashboardPage() {
   const notificationsAvailable = 'Notification' in window;
@@ -50,8 +52,24 @@ export default function DashboardPage() {
           </Button>
         </div>
       )}
-      <h1 className="text-xl px-4 py-3">Local Notifications demo</h1>
+      <div className="container px-2 pb-3">
+        <h1 className="text-xl py-3">Remote Browser Push Notifications</h1>
+        <p>
+          This section allows you to subscribe to messages from the admin and display them as browser push notifications
+        </p>
+        <p>
+          These notifications persist even after you close this website.
+        </p>
+        <h2 className="text-l font-medium py-1 mt-3">Status</h2>
+        <ServiceWorkerSubscription />
+      </div>
+      <div className="container px-2 pb-3">
+        <h1 className="text-xl py-3">Remote In-App Notifications</h1>
+        <WebSocketSubscription />
+      </div>
       <div className="container px-2 py-3">
+        <h1 className="text-xl py-3  mt-8">Local Browser Notifications Test</h1>
+        <p>This section let's you try out the notification options available in this app. Notifications sent in this section do not get sent over the network</p>
         <div className="flex px-4 gap-4 flex-col py-5">
           <label htmlFor="notification-title" className="font-bold">
             Title
@@ -111,9 +129,14 @@ export default function DashboardPage() {
             </label>
           </div>
         </div>
-        <Button onClick={displayLocalNotification}>Display Local notification</Button>
-        <Button onClick={displayInAppNotification}>Display In app notification</Button>
+        <Button onClick={displayLocalNotification}>Display as Browser Notification</Button>
+        <Button onClick={displayInAppNotification}>Display as In-app notification</Button>
+        
       </div>
+      <div className="container px-2 py-3 mt-8">
+        <h1 className="text-xl px-4 py-3 ">In-App Notifications</h1>
+      </div>
+      
     </div>
   );
 }

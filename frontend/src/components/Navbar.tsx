@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Disclosure } from '@headlessui/react';
-import { Button, useAuthenticator } from '@aws-amplify/ui-react';
+import { useAuthenticator } from '@aws-amplify/ui-react';
+import Button from './Button';
 import ServiceWorkerSubscription from './SWSubscription';
 import WebSocketSubscription from './WSsubscription';
 
@@ -78,13 +79,9 @@ export default function Navbar() {
                     ))}
                       <Button
                         onClick={logOut}
-                        className="w-full px-6 py-2 mt-3 text-center text-white bg-indigo-600 rounded-md lg:ml-5"
                       >
                         Logout
                       </Button>
-
-                      <ServiceWorkerSubscription />
-                      <WebSocketSubscription />
                   </>
                 </Disclosure.Panel>
               </div>
@@ -93,11 +90,8 @@ export default function Navbar() {
         </Disclosure>
 
         <div className="hidden mr-3 space-x-4 lg:flex nav__item">
-        <ServiceWorkerSubscription />
-        <WebSocketSubscription />
             <Button
               onClick={logOut}
-              className="px-6 py-2 text-white bg-indigo-600 rounded-md md:ml-5"
             >
               Logout
             </Button>

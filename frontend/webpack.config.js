@@ -14,11 +14,16 @@ module.exports = {
     app: "./src/index.tsx",
   },
   devServer: {
-    hot: true,
+    // hot: true,
+    static: {
+      directory: path.join(__dirname, '/')
+    },
     historyApiFallback: true,
     devMiddleware: {
       writeToDisk: true,
     },
+    host: '0.0.0.0',
+    allowedHosts: ['all']
   },
   target: "web",
   output: {
@@ -38,7 +43,7 @@ module.exports = {
       // and not allow any straggling "old" SWs to hang around
       swSrc: "./src/service-worker.ts",
       swDest: "sw.js",
-      maximumFileSizeToCacheInBytes: 31145728
+      maximumFileSizeToCacheInBytes: 31145728,
     }),
     new CopyPlugin({
       patterns: [

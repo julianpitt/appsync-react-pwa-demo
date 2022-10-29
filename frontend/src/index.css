@@ -1,5 +1,6 @@
-@tailwind base;
+@import 'tailwind.css';
+@import '@aws-amplify/ui-react/dist/styles.css';
+@import 'react-toastify/dist/ReactToastify.min.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:slnt,wght@-10..0,100..900&display=swap');
 @tailwind components;
 @tailwind utilities;
-@import '@aws-amplify/ui-react/styles.css';
-@import url('https://fonts.googleapis.com/css2?family=Inter:slnt,wght@-10..0,100..900&display=swap');
