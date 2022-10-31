@@ -4,9 +4,9 @@
   "description": "",
   "scripts": {
     "install": "npm --prefix frontend install && npm --prefix infrastructure install",
-    "deploy": "cd infrastructure && npm run deploy",
+    "deploy": "cd infrastructure && npm run deploy:all",
     "codegen": "cd infrastructure && npm run codegen",
-    "start": "npm --prefix frontend start"
+    "start": "cd frontend && npm start"
   },
   "repository": {
     "type": "git",
