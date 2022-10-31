@@ -1,4 +1,4 @@
-import { AppSyncResolverHandler } from 'aws-lambda';
+import { AppSyncIdentityCognito, AppSyncResolverHandler } from 'aws-lambda';
 import {
   SendNotificationMutation,
   SendNotificationMutationVariables,
@@ -6,32 +6,28 @@ import {
 import { getDDBClient, getSubscriptionsByGroup } from '../../libs/ddb';
 import * as webPush from 'web-push';
 import { makeRequest } from './appsync';
+import { requiredEnvs } from '../../utils/env';
 
 export const handler: AppSyncResolverHandler<
   SendNotificationMutationVariables,
   SendNotificationMutation['sendNotification']
 > = async event => {
-  const { tableName, publicKey, privateKey, identifier, appSyncEndpoint } = process.env;
-
-  if (!tableName) {
-    throw new Error(`Missing required env var "tableName"`);
+  if (
+    !event.identity ||
+    !('groups' in event.identity) ||
+    !event.identity.groups ||
+    !event.identity.groups.includes('admin')
+  ) {
+    throw new Error('only admins can send messages');
   }
 
-  if (!publicKey) {
-    throw new Error(`Missing required env var "publicKey"`);
-  }
-
-  if (!privateKey) {
-    throw new Error(`Missing required env var "privateKey"`);
-  }
-
-  if (!identifier) {
-    throw new Error(`Missing required env var "identifier"`);
-  }
-
-  if (!appSyncEndpoint) {
-    throw new Error(`Missing required env var "appSyncEndpoint"`);
-  }
+  const { tableName, publicKey, privateKey, identifier, appSyncEndpoint } = requiredEnvs(
+    'tableName',
+    'publicKey',
+    'privateKey',
+    'identifier',
+    'appSyncEndpoint',
+  );
 
   const { body, userPoolGroups, icon, title } = event.arguments.input;
   const { docClient } = getDDBClient();

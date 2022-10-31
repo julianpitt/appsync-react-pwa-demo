@@ -94,7 +94,7 @@ export default function ServiceWorkerSubscription() {
         }
       });
 
-      toast('Subscribed', {type: 'success'});
+      toast('Subscribed to browser notifications', {type: 'success'});
 
       setRegistered(true);
     } catch (e) {
@@ -120,7 +120,7 @@ export default function ServiceWorkerSubscription() {
         console.log('unsubscribe unsuccessful')
       }
       
-      toast('Unsubscribed', {type: 'success'});
+      toast('Unsubscribed to browser notifications', {type: 'success'});
       setRegistered(false);
     } catch (e) {
       console.error(e);

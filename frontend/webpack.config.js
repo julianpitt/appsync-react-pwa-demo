@@ -8,21 +8,42 @@ const Dotenv = require("dotenv-webpack");
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
+
+const workboxPlugin = new WorkboxPlugin.InjectManifest({
+  // these options encourage the ServiceWorkers to get in there fast
+  // and not allow any straggling "old" SWs to hang around
+  swSrc: "./src/service-worker.ts",
+  swDest: "sw.js",
+  ...(isDevelopment ? { maximumFileSizeToCacheInBytes: 31145728 } : undefined),
+});
+
+if (isDevelopment) {
+  // Suppress the "InjectManifest has been called multiple times" warning by reaching into
+  // the private properties of the plugin and making sure it never ends up in the state
+  // where it makes that warning.
+  // https://github.com/GoogleChrome/workbox/blob/v6/packages/workbox-webpack-plugin/src/inject-manifest.ts#L260-L282
+  Object.defineProperty(workboxPlugin, "alreadyCalled", {
+    get() {
+      return false
+    },
+    set() {
+      // do nothing; the internals try to set it to true, which then results in a warning
+      // on the next run of webpack.
+    },
+  });
+}
+
+
 module.exports = {
   mode: isDevelopment ? "development" : "production",
   entry: {
     app: "./src/index.tsx",
   },
   devServer: {
-    // hot: true,
-    static: {
-      directory: path.join(__dirname, '/')
-    },
     historyApiFallback: true,
     devMiddleware: {
       writeToDisk: true,
     },
-    host: '0.0.0.0',
     allowedHosts: ['all']
   },
   target: "web",
@@ -38,13 +59,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
-    new WorkboxPlugin.InjectManifest({
-      // these options encourage the ServiceWorkers to get in there fast
-      // and not allow any straggling "old" SWs to hang around
-      swSrc: "./src/service-worker.ts",
-      swDest: "sw.js",
-      maximumFileSizeToCacheInBytes: 31145728,
-    }),
+
     new CopyPlugin({
       patterns: [
         { from: "./public/house.png", to: "./" },
@@ -53,6 +68,7 @@ module.exports = {
         { from: "./public/notification.png", to: "./" },
       ],
     }),
+    workboxPlugin,
     new webpack.optimize.ModuleConcatenationPlugin(),
     isDevelopment && new webpack.HotModuleReplacementPlugin(),
     isDevelopment && new ReactRefreshWebpackPlugin(),

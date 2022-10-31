@@ -6,10 +6,16 @@ import ServiceWorkerSubscription from './SWSubscription';
 import WebSocketSubscription from './WSsubscription';
 
 export default function Navbar() {
-  const { route, signOut } = useAuthenticator(context => [context.route, context.signOut]);
+  const { user, route, signOut } = useAuthenticator(context => [context.user, context.route, context.signOut]);
   const navigation: {label: string, route: string}[] = [];
+  
   if (route === 'authenticated') {
-    navigation.push({ label: 'Admin', route: '/admin' });
+    navigation.push({ label: 'Test', route: '/' });
+    navigation.push({ label: 'Registration', route: '/registration' });
+    const userGroups = user.getSignInUserSession()!.getIdToken().payload['cognito:groups'];
+    if(userGroups && userGroups.includes('admin')) {
+      navigation.push({ label: 'Admin', route: '/admin' });
+    }
   }
 
   const navigate = useNavigate();

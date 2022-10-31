@@ -28,6 +28,7 @@ export default function AdminPage() {
         }
       });
 
+      toast('Messages sent', {type: 'success'});
     } catch (e) {
       toast('Api call failed', {type: 'error'});
       console.error(e);

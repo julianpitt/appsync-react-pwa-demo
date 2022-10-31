@@ -4,13 +4,23 @@ import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
   CfnUserPoolGroup,
+  StringAttribute,
   UserPool,
   UserPoolClient,
   UserPoolClientIdentityProvider,
 } from 'aws-cdk-lib/aws-cognito';
-import { FederatedPrincipal, ManagedPolicy, Role } from 'aws-cdk-lib/aws-iam';
+import {
+  FederatedPrincipal,
+  ManagedPolicy,
+  Policy,
+  PolicyStatement,
+  Role,
+} from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import groups from '../../shared/groups';
+import { lambdaProps } from './api-stack';
+import * as path from 'path';
 
 export class AuthStack extends Stack {
   userPool: UserPool;
@@ -19,6 +29,20 @@ export class AuthStack extends Stack {
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    const preSignUpFunction = new NodejsFunction(this, `preSignUpFunction`, {
+      ...lambdaProps(),
+      functionName: 'preSignUpFunction',
+      handler: 'handler',
+      entry: path.join(__dirname, `../lib/auth/preSignUpFunction/index.ts`),
+    });
+
+    const postConfFunction = new NodejsFunction(this, `postConfirmationFunction`, {
+      ...lambdaProps(),
+      functionName: 'postConfirmationFunctionFunction',
+      handler: 'handler',
+      entry: path.join(__dirname, `../lib/auth/postConfirmationFunction/index.ts`),
+    });
 
     const userPool = new UserPool(this, 'userpool', {
       userPoolName: 'pwa-demo-user-pool',
@@ -38,8 +62,26 @@ export class AuthStack extends Stack {
       },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
       removalPolicy: RemovalPolicy.DESTROY,
+      lambdaTriggers: {
+        preSignUp: preSignUpFunction,
+        postConfirmation: postConfFunction,
+      },
+      customAttributes: {
+        groupName: new StringAttribute({ mutable: true }),
+      },
     });
     this.userPool = userPool;
+
+    postConfFunction.role!.attachInlinePolicy(
+      new Policy(this, 'userpool-postconfirm-fn-policy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['cognito-idp:AdminAddUserToGroup'],
+            resources: [userPool.userPoolArn],
+          }),
+        ],
+      }),
+    );
 
     const userPoolClient = new UserPoolClient(this, 'userpool-client', {
       userPool,

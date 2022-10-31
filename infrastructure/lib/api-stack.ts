@@ -1,7 +1,7 @@
 import { Construct } from 'constructs'; // constructs provisions AWS resources - L1/L2/L3
 import * as cdk from 'aws-cdk-lib'; // cdk - define cloud infra using code/preferred programming lang
-import fs = require('fs');
-import path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   CfnDataSource,
   CfnResolver,
@@ -35,7 +35,7 @@ interface ApiStackProps extends cdk.StackProps {
   };
 }
 
-const lambdaProps = (
+export const lambdaProps = (
   env = {} as Record<string, string>,
 ): Partial<cdk.aws_lambda_nodejs.NodejsFunctionProps> => ({
   bundling: { minify: true, sourceMap: true },
